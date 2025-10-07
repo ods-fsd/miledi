@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CRM Косметологу</title>
+    <title>CRM Аліни Бокової</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -19,7 +19,7 @@
     <div class="max-w-4xl mx-auto">
         <!-- Header -->
         <header class="mb-8">
-            <h1 class="text-4xl font-extrabold text-pink-600 mb-2">💅 Міні-CRM "База Esteta"</h1>
+            <h1 class="text-4xl font-extrabold text-pink-600 mb-2">💅 Міні-CRM "Esteta"</h1>
             <p class="text-gray-500">
                 Перегляд клієнтської бази та додавання нових записів.
             </p>
@@ -28,7 +28,7 @@
         <!-- API URL & Status -->
         <div id="status-message" class="bg-blue-100 border-l-4 border-blue-500 text-blue-700 p-4 rounded-lg mb-6 shadow-md">
             <p class="font-bold">Інструкція:</p>
-            <p>Натисніть "Додати нового клієнта", щоб додати нового клієнта.</p>
+            <p>Натисни...</p>
         </div>
         
         <!-- Action Button (Add Client) -->
@@ -94,7 +94,7 @@
     <script>
         // *** 1. НАЛАШТУВАННЯ API ***
         // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        // ЗАМІНІТЬ ЦЕЙ ПЛЕЙСХОЛДЕР НА URL ВАШОГО РОЗГОРНУТОГО WEB APP
+        // ВСТАВЛЕНЕ ВАШЕ ПОСИЛАННЯ НА WEB APP
         const APPS_SCRIPT_API_URL = "https://script.google.com/macros/s/AKfycbx_MaqGlq42b1nbzxv9UuY1qG355MolUA0JDa5nnposNpC9PUQGMWNPNr1LOZfO58Nq/exec"; 
         // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -157,16 +157,14 @@
 
             // *** MOCK DATA (Для демонстрації до підключення API) ***
             const mockClients = [
-                { name: "Олена Коваль", phone: "537094497", lastVisit: "20.09.2025", dob: "15.03" },
-                { name: "Марина Зінченко", phone: "555555555", lastVisit: "28.09.2025", dob: "05.11" },
-                { name: "Катерина Смірнова", phone: "555777555", lastVisit: "01.10.2025", dob: "—" },
+                { name: "Олена Коваль", phone: "380971234567", lastVisit: "20.09.2025", dob: "15.03" },
+                { name: "Марина Зінченко", phone: "380669876543", lastVisit: "28.09.2025", dob: "05.11" },
+                { name: "Катерина Смірнова", phone: "380631112233", lastVisit: "01.10.2025", dob: "—" },
             ];
 
             try {
                 // Якщо APPS_SCRIPT_API_URL встановлено, спробуйте реальний запит
-                if (APPS_SCRIPT_API_URL !== "https://script.google.com/macros/s/AKfycbx_MaqGlq42b1nbzxv9UuY1qG355MolUA0JDa5nnposNpC9PUQGMWNPNr1LOZfO58Nq/exec") {
-                    // ЗНЯТИ КОМЕНТАРІ ДЛЯ РЕАЛЬНОГО ВИКОРИСТАННЯ
-                    /*
+                if (APPS_SCRIPT_API_URL !== "YOUR_APPS_SCRIPT_URL_HERE") {
                     const response = await fetch(APPS_SCRIPT_API_URL + "?action=getClients", { method: 'GET' });
                     const data = await response.json();
                     
@@ -175,13 +173,7 @@
                     } else {
                         throw new Error(data.message || "Помилка при отриманні даних.");
                     }
-                    */
                    
-                    // --- MOCK ДЛЯ ШВИДКОГО ЗАВАНТАЖЕННЯ ---
-                    await new Promise(resolve => setTimeout(resolve, 1000));
-                    mockClients.forEach(client => listBody.appendChild(createClientCard(client)));
-                    // --- КІНЕЦЬ MOCK ---
-
                 } else {
                     // Використовуємо MOCK, якщо URL не встановлено
                     await new Promise(resolve => setTimeout(resolve, 1000));
@@ -216,40 +208,34 @@
             };
             
             try {
-                if (APPS_SCRIPT_API_URL === "YOUR_APPS_SCRIPT_URL_HERE") {
-                    throw new Error("❌ Будь ласка, спочатку замініть APPS_SCRIPT_API_URL на реальне посилання.");
-                }
+                // ПЕРЕВІРКА НА URL-ЗАГЛУШКУ ВИДАЛЕНА: Мережевий запит тепер сам видасть помилку, якщо URL недійсний
                 
-                // ЗНЯТИ КОМЕНТАРІ ДЛЯ РЕАЛЬНОГО ВИКОРИСТАННЯ
-                /*
                 const response = await fetch(APPS_SCRIPT_API_URL, {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'Content-Type': 'application/json', // Виправлено: використовуємо JSON для відповідності GAS doPost обробці
                     },
                     body: JSON.stringify(payload)
                 });
                 
-                const result = await response.json();
-                */
-                
-                // --- MOCK ДЛЯ ШВИДКОГО ТЕСТУВАННЯ ---
-                await new Promise(resolve => setTimeout(resolve, 2000));
-                const result = { success: true, message: `Клієнт ${data.name} успішно доданий (MOCK).` };
-                // --- КІНЕЦЬ MOCK ---
+                // Перевірка на помилку HTTP
+                if (!response.ok) {
+                    throw new Error(`Помилка мережі або сервера: ${response.status} ${response.statusText}. Перевірте, чи правильно розгорнуто Web App.`);
+                }
 
+                const result = await response.json();
+                
                 if (result.success) {
                     displayMessage('success', result.message);
                     form.reset();
                     loadClients(); // Оновлюємо список
-                    // toggleForm(); // Можна закрити форму після успіху
                 } else {
                     displayMessage('error', result.message);
                 }
 
             } catch (error) {
                 console.error("Помилка відправки:", error);
-                displayMessage('error', error.message || 'Помилка підключення до API.');
+                displayMessage('error', error.message || 'Помилка підключення до API. Перевірте консоль.');
             }
         }
 
