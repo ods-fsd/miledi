@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CRM Салону Краси</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f7f9fb;
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8 min-h-screen">
+
+    <div class="max-w-4xl mx-auto">
+        <!-- Header -->
+        <header class="mb-8">
+            <h1 class="text-4xl font-extrabold text-pink-600 mb-2">💅 Міні-CRM "Сайт-Вітрина"</h1>
+            <p class="text-gray-500">
+                Перегляд клієнтської бази та додавання нових записів через API Google Таблиць.
+            </p>
+        </header>
+
+        <!-- API URL & Status -->
+        <div id="status-message" class="bg-blue-100 border-l-4 border-blue-500 text-blue-700 p-4 rounded-lg mb-6 shadow-md">
+            <p class="font-bold">Інструкція:</p>
+            <p>1. Розгорніть `API_Code.gs` як Web App. 2. **Замініть `YOUR_APPS_SCRIPT_URL_HERE`** на отримане посилання у змінній `APPS_SCRIPT_API_URL` внизу.</p>
+        </div>
+        
+        <!-- Action Button (Add Client) -->
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-2xl font-semibold text-gray-700">Усі клієнти</h2>
+            <button id="show-form-btn" onclick="toggleForm()" class="bg-pink-500 hover:bg-pink-600 text-white font-bold py-2 px-4 rounded-xl shadow-lg transition duration-200 flex items-center">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+                Додати нового клієнта
+            </button>
+        </div>
+
+        <!-- Add Client Form (Initially Hidden) -->
+        <div id="add-client-form-container" class="bg-white p-6 rounded-2xl shadow-xl mb-8 hidden">
+            <h3 class="text-xl font-semibold mb-4 text-gray-800">Новий запис</h3>
+            <form id="client-form" onsubmit="addClient(event)">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Name -->
+                    <div class="col-span-1">
+                        <label for="name" class="block text-sm font-medium text-gray-700">Ім'я клієнта</label>
+                        <input type="text" id="name" name="name" required class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-3 focus:ring-pink-500 focus:border-pink-500 border">
+                    </div>
+                    <!-- Phone -->
+                    <div class="col-span-1">
+                        <label for="phone" class="block text-sm font-medium text-gray-700">Телефон</label>
+                        <input type="tel" id="phone" name="phone" required class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-3 focus:ring-pink-500 focus:border-pink-500 border">
+                    </div>
+                    <!-- Date -->
+                    <div class="col-span-1">
+                        <label for="visitDate" class="block text-sm font-medium text-gray-700">Дата візиту</label>
+                        <input type="date" id="visitDate" name="visitDate" required class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-3 focus:ring-pink-500 focus:border-pink-500 border">
+                    </div>
+                    <!-- Time -->
+                    <div class="col-span-1">
+                        <label for="visitTime" class="block text-sm font-medium text-gray-700">Час візиту</label>
+                        <input type="time" id="visitTime" name="visitTime" required class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-3 focus:ring-pink-500 focus:border-pink-500 border">
+                    </div>
+                    <!-- Service -->
+                    <div class="md:col-span-2">
+                        <label for="service" class="block text-sm font-medium text-gray-700">Послуга</label>
+                        <input type="text" id="service" name="service" required class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-3 focus:ring-pink-500 focus:border-pink-500 border">
+                    </div>
+                </div>
+                <!-- Submit Button -->
+                <div class="mt-6 flex justify-end">
+                    <button type="submit" id="submit-btn" class="bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-6 rounded-xl shadow-lg transition duration-200">
+                        Додати запис
+                    </button>
+                </div>
+                <div id="form-message" class="mt-4 text-center font-medium"></div>
+            </form>
+        </div>
+
+        <!-- Clients List -->
+        <div id="client-list-container" class="bg-white p-6 rounded-2xl shadow-xl">
+            <div id="client-list-body" class="space-y-4">
+                <div class="text-center p-8 text-gray-500" id="loading-indicator">Завантаження даних...</div>
+                <!-- Client cards will be injected here -->
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // *** 1. НАЛАШТУВАННЯ API ***
+        // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        // ЗАМІНІТЬ ЦЕЙ ПЛЕЙСХОЛДЕР НА URL ВАШОГО РОЗГОРНУТОГО WEB APP
+        const APPS_SCRIPT_API_URL = "https://script.google.com/macros/s/AKfycbx_MaqGlq42b1nbzxv9UuY1qG355MolUA0JDa5nnposNpC9PUQGMWNPNr1LOZfO58Nq/exec"; 
+        // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+        // *** 2. ФУНКЦІЇ ІНТЕРФЕЙСУ ***
+
+        function toggleForm() {
+            const formContainer = document.getElementById('add-client-form-container');
+            const button = document.getElementById('show-form-btn');
+            const isHidden = formContainer.classList.toggle('hidden');
+            
+            if (isHidden) {
+                button.innerHTML = '<svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg> Додати нового клієнта';
+            } else {
+                button.innerHTML = 'Сховати форму';
+            }
+        }
+        
+        function displayMessage(type, text, targetId = 'form-message') {
+            const msgEl = document.getElementById(targetId);
+            msgEl.textContent = text;
+            msgEl.className = 'mt-4 text-center font-medium p-3 rounded-lg';
+            if (type === 'success') {
+                msgEl.classList.add('bg-green-100', 'text-green-800');
+            } else if (type === 'error') {
+                msgEl.classList.add('bg-red-100', 'text-red-800');
+            } else if (type === 'loading') {
+                 msgEl.classList.add('bg-blue-100', 'text-blue-800');
+            } else {
+                msgEl.classList.add('text-gray-600');
+            }
+        }
+
+        function createClientCard(client) {
+            const card = document.createElement('div');
+            card.className = 'bg-gray-50 p-4 rounded-xl border border-gray-200 shadow-sm transition hover:shadow-md';
+            card.innerHTML = `
+                <div class="flex justify-between items-start">
+                    <p class="text-xl font-bold text-gray-800">${client.name}</p>
+                    <p class="text-sm text-gray-500 bg-gray-200 py-1 px-3 rounded-full">
+                       Останній візит: ${client.lastVisit || 'Невідомо'}
+                    </p>
+                </div>
+                <p class="text-pink-600 font-medium mt-1">${client.phone}</p>
+                <p class="text-sm text-gray-600 mt-2">
+                    <span class="font-semibold">Дата народження:</span> ${client.dob || '—'}
+                </p>
+            `;
+            return card;
+        }
+
+
+        // *** 3. ФУНКЦІЇ ВЗАЄМОДІЇ З API (Google Apps Script) ***
+        
+        // Функція для завантаження списку клієнтів
+        async function loadClients() {
+            const listBody = document.getElementById('client-list-body');
+            const loadingIndicator = document.getElementById('loading-indicator');
+            listBody.innerHTML = ''; // Очищаємо список
+            loadingIndicator.style.display = 'block';
+
+            // *** MOCK DATA (Для демонстрації до підключення API) ***
+            const mockClients = [
+                { name: "Олена Коваль", phone: "380971234567", lastVisit: "20.09.2025", dob: "15.03" },
+                { name: "Марина Зінченко", phone: "380669876543", lastVisit: "28.09.2025", dob: "05.11" },
+                { name: "Катерина Смірнова", phone: "380631112233", lastVisit: "01.10.2025", dob: "—" },
+            ];
+
+            try {
+                // Якщо APPS_SCRIPT_API_URL встановлено, спробуйте реальний запит
+                if (APPS_SCRIPT_API_URL !== "YOUR_APPS_SCRIPT_URL_HERE") {
+                    // ЗНЯТИ КОМЕНТАРІ ДЛЯ РЕАЛЬНОГО ВИКОРИСТАННЯ
+                    /*
+                    const response = await fetch(APPS_SCRIPT_API_URL + "?action=getClients", { method: 'GET' });
+                    const data = await response.json();
+                    
+                    if (data && data.success) {
+                        data.clients.forEach(client => listBody.appendChild(createClientCard(client)));
+                    } else {
+                        throw new Error(data.message || "Помилка при отриманні даних.");
+                    }
+                    */
+                   
+                    // --- MOCK ДЛЯ ШВИДКОГО ЗАВАНТАЖЕННЯ ---
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    mockClients.forEach(client => listBody.appendChild(createClientCard(client)));
+                    // --- КІНЕЦЬ MOCK ---
+
+                } else {
+                    // Використовуємо MOCK, якщо URL не встановлено
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    mockClients.forEach(client => listBody.appendChild(createClientCard(client)));
+                }
+
+            } catch (error) {
+                console.error("Помилка завантаження:", error);
+                listBody.innerHTML = `<div class="text-center text-red-600 p-4">Не вдалося завантажити дані. Перевірте URL API та консоль.</div>`;
+            } finally {
+                loadingIndicator.style.display = 'none';
+                if (listBody.innerHTML === '') {
+                     listBody.innerHTML = `<div class="text-center p-8 text-gray-500">Немає зареєстрованих клієнтів.</div>`;
+                }
+            }
+        }
+
+        // Функція для додавання нового клієнта
+        async function addClient(event) {
+            event.preventDefault();
+            
+            const form = document.getElementById('client-form');
+            const formData = new FormData(form);
+            const data = Object.fromEntries(formData.entries());
+            
+            displayMessage('loading', 'Надсилання даних...');
+
+            // Підготовка даних для GAS (Apps Script отримує POST-запити як об'єкт 'postData')
+            const payload = {
+                action: 'addClient',
+                ...data
+            };
+            
+            try {
+                if (APPS_SCRIPT_API_URL === "YOUR_APPS_SCRIPT_URL_HERE") {
+                    throw new Error("❌ Будь ласка, спочатку замініть APPS_SCRIPT_API_URL на реальне посилання.");
+                }
+                
+                // ЗНЯТИ КОМЕНТАРІ ДЛЯ РЕАЛЬНОГО ВИКОРИСТАННЯ
+                /*
+                const response = await fetch(APPS_SCRIPT_API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: JSON.stringify(payload)
+                });
+                
+                const result = await response.json();
+                */
+                
+                // --- MOCK ДЛЯ ШВИДКОГО ТЕСТУВАННЯ ---
+                await new Promise(resolve => setTimeout(resolve, 2000));
+                const result = { success: true, message: `Клієнт ${data.name} успішно доданий (MOCK).` };
+                // --- КІНЕЦЬ MOCK ---
+
+                if (result.success) {
+                    displayMessage('success', result.message);
+                    form.reset();
+                    loadClients(); // Оновлюємо список
+                    // toggleForm(); // Можна закрити форму після успіху
+                } else {
+                    displayMessage('error', result.message);
+                }
+
+            } catch (error) {
+                console.error("Помилка відправки:", error);
+                displayMessage('error', error.message || 'Помилка підключення до API.');
+            }
+        }
+
+
+        // *** 4. ІНІЦІАЛІЗАЦІЯ ***
+
+        window.onload = loadClients;
+    </script>
+</body>
+</html>
