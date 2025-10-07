@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CRM Аліни Бокової</title>
+    <title>CRM Салону Краси</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -19,16 +19,16 @@
     <div class="max-w-4xl mx-auto">
         <!-- Header -->
         <header class="mb-8">
-            <h1 class="text-4xl font-extrabold text-pink-600 mb-2">💅 Міні-CRM "Esteta"</h1>
+            <h1 class="text-4xl font-extrabold text-pink-600 mb-2">💅 Міні-CRM "Сайт-Вітрина"</h1>
             <p class="text-gray-500">
-                Перегляд клієнтської бази та додавання нових записів.
+                Перегляд клієнтської бази та додавання нових записів через API Google Таблиць.
             </p>
         </header>
 
         <!-- API URL & Status -->
         <div id="status-message" class="bg-blue-100 border-l-4 border-blue-500 text-blue-700 p-4 rounded-lg mb-6 shadow-md">
             <p class="font-bold">Інструкція:</p>
-            <p>Натисни...</p>
+            <p>1. Розгорніть `API_Code.gs` як Web App. 2. **ПОСИЛАННЯ ВЖЕ ВСТАВЛЕНО.**</p>
         </div>
         
         <!-- Action Button (Add Client) -->
@@ -208,19 +208,18 @@
             };
             
             try {
-                // ПЕРЕВІРКА НА URL-ЗАГЛУШКУ ВИДАЛЕНА: Мережевий запит тепер сам видасть помилку, якщо URL недійсний
-                
+                // ВИПРАВЛЕННЯ: Змінено Content-Type на 'text/plain', щоб уникнути помилки CORS pre-flight
                 const response = await fetch(APPS_SCRIPT_API_URL, {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json', // Виправлено: використовуємо JSON для відповідності GAS doPost обробці
+                        'Content-Type': 'text/plain;charset=utf-8', 
                     },
                     body: JSON.stringify(payload)
                 });
                 
                 // Перевірка на помилку HTTP
                 if (!response.ok) {
-                    throw new Error(`Помилка мережі або сервера: ${response.status} ${response.statusText}. Перевірте, чи правильно розгорнуто Web App.`);
+                    throw new Error(`Помилка мережі або сервера: ${response.status} ${response.statusText}.`);
                 }
 
                 const result = await response.json();
