@@ -28,7 +28,7 @@
         <!-- API URL & Status -->
         <div id="status-message" class="bg-blue-100 border-l-4 border-blue-500 text-blue-700 p-4 rounded-lg mb-6 shadow-md">
             <p class="font-bold">Інструкція:</p>
-            <p>1. Розгорніть `API_Code.gs` як Web App. 2. **Замініть `YOUR_APPS_SCRIPT_URL_HERE`** на отримане посилання у змінній `APPS_SCRIPT_API_URL` внизу.</p>
+            <p>Натисніть "Додати нового клієнта", щоб додати нового клієнта.</p>
         </div>
         
         <!-- Action Button (Add Client) -->
@@ -164,7 +164,7 @@
 
             try {
                 // Якщо APPS_SCRIPT_API_URL встановлено, спробуйте реальний запит
-                if (APPS_SCRIPT_API_URL !== "YOUR_APPS_SCRIPT_URL_HERE") {
+                if (APPS_SCRIPT_API_URL !== "https://script.google.com/macros/s/AKfycbx_MaqGlq42b1nbzxv9UuY1qG355MolUA0JDa5nnposNpC9PUQGMWNPNr1LOZfO58Nq/exec") {
                     // ЗНЯТИ КОМЕНТАРІ ДЛЯ РЕАЛЬНОГО ВИКОРИСТАННЯ
                     /*
                     const response = await fetch(APPS_SCRIPT_API_URL + "?action=getClients", { method: 'GET' });
@@ -216,7 +216,7 @@
             };
             
             try {
-                if (APPS_SCRIPT_API_URL === "YOUR_APPS_SCRIPT_URL_HERE") {
+                if (APPS_SCRIPT_API_URL === "https://script.google.com/macros/s/AKfycbx_MaqGlq42b1nbzxv9UuY1qG355MolUA0JDa5nnposNpC9PUQGMWNPNr1LOZfO58Nq/exec") {
                     throw new Error("❌ Будь ласка, спочатку замініть APPS_SCRIPT_API_URL на реальне посилання.");
                 }
                 
